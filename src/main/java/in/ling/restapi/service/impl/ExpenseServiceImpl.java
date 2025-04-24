@@ -2,6 +2,7 @@ package in.ling.restapi.service.impl;
 
 import in.ling.restapi.dto.ExpenseDTO;
 import in.ling.restapi.entity.ExpenseEntity;
+import in.ling.restapi.exceptions.ResourceNotFoundException;
 import in.ling.restapi.repository.ExpenseRepository;
 import in.ling.restapi.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +32,25 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public List<ExpenseDTO> getAllExpenses() {
         // Call the repository method to fetch all expenses
-        List<ExpenseEntity> list =  expenseRepository.findAll();
+        List<ExpenseEntity> list = expenseRepository.findAll();
         log.info("Print the data from repository {}", list);
         // Convert the Entity objects to DTOs using ModelMapper
         List<ExpenseDTO> listOfExpenses = list.stream().map(expenseEntity -> mapToExpenseDTO(expenseEntity)).collect(Collectors.toList());
         // Return the list of DTOs
         return listOfExpenses;
+    }
+
+    /**
+     * @description This method fetches an expense by its ID from the database.
+     * @param expenseId The ID of the expense to be fetched.
+     * @return The ExpenseDTO object containing the expense details.
+     **/
+    @Override
+    public ExpenseDTO getExpenseByExpenseId(String expenseId) {
+        ExpenseEntity expenseEntity = expenseRepository.findByExpenseId(expenseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found for the expense id" + expenseId));
+        log.info("Print the expense entity details {}", expenseEntity);
+        return mapToExpenseDTO(expenseEntity);
     }
 
     /**
