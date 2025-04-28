@@ -1,8 +1,10 @@
 package in.ling.restapi.controller;
 
 import in.ling.restapi.dto.ExpenseDTO;
+import in.ling.restapi.io.ExpenseRequest;
 import in.ling.restapi.io.ExpenseResponse;
 import in.ling.restapi.service.ExpenseService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -63,6 +65,30 @@ public class ExpenseController {
     public void deleteExpenseByExpenseId(@PathVariable String expenseId) {
         log.info("API DELETE /expenses/{} called", expenseId);
         expenseService.deleteExpenseByExpenseId(expenseId);
+    }
+
+    /**
+     * @description This method handles POST requests to save expense details.
+     * @param expenseRequest The request object containing expense details.
+     * @return The saved ExpenseResponse object.
+     */
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/expenses")
+    public ExpenseResponse saveExpenseDetails(@Valid @RequestBody ExpenseRequest expenseRequest) {
+        log.info("API POST /expenses called {}", expenseRequest);
+        ExpenseDTO expenseDTO = mapToExpenseDTO(expenseRequest);
+        expenseDTO = expenseService.saveExpenseDetails(expenseDTO);
+        log.info("Print the expense dto {}", expenseDTO);
+        return mapToExpenseResponse(expenseDTO);
+    }
+
+    /**
+     * @description This method maps an ExpenseRequest object to an ExpenseDTO object.
+     * @param expenseRequest The ExpenseRequest object to be mapped.
+     * @return The mapped ExpenseDTO object.
+     */
+    private ExpenseDTO mapToExpenseDTO(@Valid ExpenseRequest expenseRequest) {
+        return modelMapper.map(expenseRequest, ExpenseDTO.class);
     }
 
     /**
