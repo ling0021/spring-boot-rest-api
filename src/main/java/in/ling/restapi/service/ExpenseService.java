@@ -36,4 +36,12 @@ public interface ExpenseService {
      * @return The saved ExpenseDTO object.
      */
     ExpenseDTO saveExpenseDetails(ExpenseDTO expenseDTO);
+
+    /**
+     * Updates expense details in the database.
+     * @param expenseDTO The ExpenseDTO object containing updated expense details.
+     * @param expenseId The ID of the expense to be updated.
+     * @return The updated ExpenseDTO object.
+     */
+    ExpenseDTO updateExpenseDetails(ExpenseDTO expenseDTO, String expenseId);
 }
