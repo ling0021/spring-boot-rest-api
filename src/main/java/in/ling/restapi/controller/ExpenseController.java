@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin("*")
 public class ExpenseController {
 
     private final ExpenseService expenseService;

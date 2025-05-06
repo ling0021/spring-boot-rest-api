@@ -1,18 +1,24 @@
 package in.ling.restapi.controller;
 
 import in.ling.restapi.dto.ProfileDTO;
+import in.ling.restapi.io.AuthRequest;
+import in.ling.restapi.io.AuthResponse;
 import in.ling.restapi.io.ProfileRequest;
 import in.ling.restapi.io.ProfileResponse;
+import in.ling.restapi.service.CustomUserDetailsService;
 import in.ling.restapi.service.ProfileService;
+import in.ling.restapi.util.JwtTokenUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @Slf4j
@@ -20,7 +26,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final ModelMapper modelMapper;
+
     private final ProfileService profileService;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final JwtTokenUtil jwtTokenUtil;
+
+    private final CustomUserDetailsService userDetailsService;
 
 
     /**
@@ -36,6 +49,15 @@ public class AuthController {
         profileDTO = profileService.createProfile(profileDTO);
         log.info("Print the profile dto details {}", profileDTO);
         return mapToProfileResponse(profileDTO);
+    }
+
+    @PostMapping("/login")
+    public AuthResponse authenticateProfile(@RequestBody AuthRequest authRequest)  {
+        log.info("API/ authenticate called {}", authRequest);
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
+        final UserDetails userDetails =  userDetailsService.loadUserByUsername(authRequest.getEmail());
+        final String token = jwtTokenUtil.generateToken(userDetails);
+        return new AuthResponse(token, authRequest.getEmail());
     }
 
 
