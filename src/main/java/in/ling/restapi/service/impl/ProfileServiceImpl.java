@@ -2,6 +2,7 @@ package in.ling.restapi.service.impl;
 
 import in.ling.restapi.dto.ProfileDTO;
 import in.ling.restapi.entity.ProfileEntity;
+import in.ling.restapi.exceptions.ItemExistsException;
 import in.ling.restapi.repository.ProfileRepository;
 import in.ling.restapi.service.ProfileService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,9 @@ public class ProfileServiceImpl implements ProfileService {
      */
     @Override
     public ProfileDTO createProfile(ProfileDTO profileDTO) {
+        if (profileRepository.existsByEmail(profileDTO.getEmail())) {
+            throw new ItemExistsException("Profile already exists with the email: " + profileDTO.getEmail());
+        }
         profileDTO.setPassword(encoder.encode(profileDTO.getPassword()));
         ProfileEntity profileEntity = mapToProfileEntity(profileDTO);
         profileEntity.setProfileId(UUID.randomUUID().toString());
