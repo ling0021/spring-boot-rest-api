@@ -7,12 +7,15 @@ import in.ling.restapi.io.ProfileRequest;
 import in.ling.restapi.io.ProfileResponse;
 import in.ling.restapi.service.CustomUserDetailsService;
 import in.ling.restapi.service.ProfileService;
+import in.ling.restapi.service.TokenBlacklistService;
 import in.ling.restapi.util.JwtTokenUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -37,6 +40,8 @@ public class AuthController {
 
     private final CustomUserDetailsService userDetailsService;
 
+    private final TokenBlacklistService tokenBlacklistService;
+
 
     /**
      * This method is used to create a new profile.
@@ -60,6 +65,23 @@ public class AuthController {
         final UserDetails userDetails =  userDetailsService.loadUserByUsername(authRequest.getEmail());
         final String token = jwtTokenUtil.generateToken(userDetails);
         return new AuthResponse(token, authRequest.getEmail());
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping("/signout")
+    public void signout(HttpServletRequest request) {
+        String jwtToken = extractJwtTokenFromRequest(request);
+        if (jwtToken != null) {
+            tokenBlacklistService.addTokenToBlacklist(jwtToken);
+        }
+    }
+
+    private String extractJwtTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     private void authenticate(AuthRequest authRequest) throws Exception {
